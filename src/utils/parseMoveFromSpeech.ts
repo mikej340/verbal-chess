@@ -43,6 +43,7 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
     .replace(/\b(night|naught|nought|horse|nite|neigh|mike|might)\b/g, 'knight')
     .replace(/\b(cream|clean)\b/g, 'queen')
     .replace(/\b(rock)\b/g, 'rook')
+    .replace(/\b(porn)\b/g, 'pawn')
 
   // Remove noise words
   text = text.replace(/\b(to|on|move)\b/g, ' ')
