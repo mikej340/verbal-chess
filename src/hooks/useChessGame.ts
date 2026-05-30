@@ -1,4 +1,4 @@
-import { Chess, Move, Square } from 'chess.js'
+import { Chess, Move } from 'chess.js'
 import { useCallback, useRef, useState } from 'react'
 import { ParsedMove } from '../utils/parseMoveFromSpeech'
 
@@ -39,13 +39,8 @@ function getGameState(chess: Chess, lastMove: LastMove | null): GameState {
   }
 }
 
-function otherColor(color: 'w' | 'b'): 'w' | 'b' {
-  return color === 'w' ? 'b' : 'w'
-}
-
 // Each entry tracks how many undo() calls are needed to reverse one logical move.
-// Using setTurn() inserts a null move, requiring an extra undo.
-type HistoryEntry = { undoCount: 1 | 2 }
+type HistoryEntry = { undoCount: 1 }
 
 export function useChessGame(): UseChessGameReturn {
   const chessRef = useRef(new Chess())
@@ -55,14 +50,14 @@ export function useChessGame(): UseChessGameReturn {
   )
 
   const applyAndRecord = useCallback(
-    (result: Move, undoCount: 1 | 2) => {
-      historyRef.current.push({ undoCount })
+    (result: Move) => {
+      historyRef.current.push({ undoCount: 1 })
       setGameState(getGameState(chessRef.current, { from: result.from, to: result.to }))
     },
     []
   )
 
-  // Find candidates among legal moves in chess (which may have had its turn adjusted)
+  // Find candidates among legal moves matching the parsed move description
   function findCandidates(chess: Chess, parsed: ParsedMove): Move[] {
     const verbose = chess.moves({ verbose: true }) as Move[]
     return verbose.filter(m => {
@@ -79,78 +74,48 @@ export function useChessGame(): UseChessGameReturn {
   const makeParsedMove = useCallback((parsed: ParsedMove): boolean => {
     const chess = chessRef.current
 
-    // Try the move as-is, then try again with the turn flipped.
-    // setTurn() inserts a null move; we undo it if the attempt fails.
-    const tryWithTurns = (attempt: () => Move | null): boolean => {
-      const r1 = attempt()
-      if (r1) { applyAndRecord(r1, 1); return true }
-
-      const flipped = chess.setTurn(otherColor(chess.turn()))
-      if (!flipped) return false // setTurn failed (e.g. position is illegal)
-
-      const r2 = attempt()
-      if (r2) { applyAndRecord(r2, 2); return true }
-
-      chess.undo() // remove the null move since the attempt failed
-      return false
-    }
-
-    // Handle castling
     if (parsed.isCastleKingside || parsed.isCastleQueenside) {
       const target = parsed.isCastleKingside ? 'O-O' : 'O-O-O'
-      return tryWithTurns(() => {
-        if (!chess.moves().includes(target)) return null
-        try { return chess.move(target) } catch { return null }
-      })
+      if (!chess.moves().includes(target)) return false
+      try {
+        const result = chess.move(target)
+        applyAndRecord(result)
+        return true
+      } catch { return false }
     }
 
     if (!parsed.toSquare) return false
 
-    // Regular move: find the unique legal candidate, then apply it
-    return tryWithTurns(() => {
-      let candidates = findCandidates(chess, parsed)
-      if (candidates.length === 0) return null
-      // chess.js emits 4 moves for promotions (one per piece) — narrow to the desired/default
-      if (candidates.length > 1 && candidates.every(m => m.isPromotion())) {
-        const want = parsed.promotion ?? 'q'
-        candidates = candidates.filter(m => m.promotion === want)
-      }
-      if (candidates.length !== 1) return null
-      const c = candidates[0]
-      const mv: { from: string; to: string; promotion?: string } = { from: c.from, to: c.to }
-      if (c.isPromotion()) mv.promotion = parsed.promotion ?? 'q'
-      try { return chess.move(mv) } catch { return null }
-    })
+    let candidates = findCandidates(chess, parsed)
+    if (candidates.length === 0) return false
+    // chess.js emits 4 moves for promotions (one per piece) — narrow to desired/default
+    if (candidates.length > 1 && candidates.every(m => m.isPromotion())) {
+      const want = parsed.promotion ?? 'q'
+      candidates = candidates.filter(m => m.promotion === want)
+    }
+    if (candidates.length !== 1) return false
+    const c = candidates[0]
+    const mv: { from: string; to: string; promotion?: string } = { from: c.from, to: c.to }
+    if (c.isPromotion()) mv.promotion = parsed.promotion ?? 'q'
+    try {
+      const result = chess.move(mv)
+      applyAndRecord(result)
+      return true
+    } catch { return false }
   }, [applyAndRecord])
 
   const makeMoveFromSquares = useCallback(
     (from: string, to: string, promotion?: string): boolean => {
       const chess = chessRef.current
-      const piece = chess.get(from as Square)
-      if (!piece) return false
-
-      // Flip turn if the piece belongs to the side not currently to move
-      let flipped = false
-      if (piece.color !== chess.turn()) {
-        const ok = chess.setTurn(piece.color)
-        if (!ok) return false
-        flipped = true
-      }
-
-      // Detect promotion
       const verbose = chess.moves({ verbose: true }) as Move[]
       const isPromotion = verbose.some(m => m.from === from && m.to === to && m.isPromotion())
       const mv: { from: string; to: string; promotion?: string } = { from, to }
       if (isPromotion) mv.promotion = promotion ?? 'q'
-
       try {
         const result = chess.move(mv)
-        applyAndRecord(result, flipped ? 2 : 1)
+        applyAndRecord(result)
         return true
-      } catch {
-        if (flipped) chess.undo() // remove the null move from setTurn
-        return false
-      }
+      } catch { return false }
     },
     [applyAndRecord]
   )
@@ -160,7 +125,7 @@ export function useChessGame(): UseChessGameReturn {
       const chess = chessRef.current
       try {
         const result = chess.move(san)
-        applyAndRecord(result, 1)
+        applyAndRecord(result)
         return true
       } catch {
         return false
