@@ -42,26 +42,30 @@ export default function App() {
     parseErrorTimerRef.current = setTimeout(() => setParseError(null), 4000)
   }, [])
 
-  const onTranscript = useCallback(
-    (transcript: string) => {
-      setLastHeard(transcript)
-      const parsed = parseMoveFromSpeech(transcript)
-      if (!parsed) {
-        showError(`Didn't understand: "${transcript}"`)
-        return
+  const onTranscripts = useCallback(
+    (transcripts: string[]) => {
+      // Try each ranked alternative until one parses and moves legally
+      for (const transcript of transcripts) {
+        const parsed = parseMoveFromSpeech(transcript)
+        if (!parsed) continue
+        const success = makeParsedMove(parsed)
+        if (success) {
+          setLastHeard(transcript)
+          setParseError(null)
+          setSelectedSquare(null)
+          return
+        }
       }
-      const success = makeParsedMove(parsed)
-      if (!success) {
-        showError(`Illegal move: "${transcript}"`)
-      } else {
-        setParseError(null)
-        setSelectedSquare(null)
-      }
+      // None succeeded — report error using top-ranked alternative
+      const top = transcripts[0] ?? ''
+      setLastHeard(top)
+      const parsed = parseMoveFromSpeech(top)
+      showError(parsed ? `Illegal move: "${top}"` : `Didn't understand: "${top}"`)
     },
     [makeParsedMove, showError]
   )
 
-  const { isListening, isSupported, toggleListening } = useSpeechRecognition({ onTranscript })
+  const { isListening, isSupported, toggleListening } = useSpeechRecognition({ onTranscripts })
 
   const handlePieceDrop = useCallback(
     ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }): boolean => {
