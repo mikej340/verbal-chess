@@ -43,6 +43,7 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
     .replace(/\b(night|naught|nought|horse|nite|neigh|mike|might)\b/g, 'knight')
     .replace(/\b(cream|clean)\b/g, 'queen')
     .replace(/\b(rock)\b/g, 'rook')
+    .replace(/\b(porn)\b/g, 'pawn')
 
   // Remove noise words
   text = text.replace(/\b(to|on|move)\b/g, ' ')
@@ -81,6 +82,9 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
     .replace(/\bsix\b/g, '6')
     .replace(/\bseven\b/g, '7')
     .replace(/\b(eight|ate)\b/g, '8')
+
+  // Specific whole-phrase misrecognitions that survive earlier substitutions
+  text = text.replace(/\bdefault\b/g, 'd4')
 
   // Two-digit number where second digit is a valid rank → likely a misheard square
   // e.g. "84" → "a4" when STT hears "a" as "eight"
