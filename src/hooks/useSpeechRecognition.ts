@@ -40,7 +40,7 @@ public <move> = <piece>? <capture>? <square> | <castling> | <piece>? <square> <c
 <piece> = knight | night | mike | bishop | rook | rock | queen | king | pawn;
 <capture> = takes | captures | eats | x;
 <square> = <file> <rank>;
-<file> = a | b | c | d | e | f | g | h | alpha | alfa | able | bravo | beta | charlie | delta | echo | foxtrot | fox | golf | hotel | ay | aye | bee | sea | see | dee | aitch | haitch;
+<file> = a | b | c | d | e | f | g | h | alpha | alfa | able | bravo | beta | charlie | delta | echo | foxtrot | fox | golf | hotel | ay | aye | bee | sea | see | dee | aitch | haitch | ef | eff | gee | pee | pe | tee | te | zee | ze | zed | jay | j;
 <rank> = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | one | won | two | too | three | tree | free | four | for | fore | five | six | seven | eight | ate;
 <castling> = castle kingside | castle queenside | short castle | long castle | castles | oh oh oh | oh oh | zero zero zero | zero zero;`
 

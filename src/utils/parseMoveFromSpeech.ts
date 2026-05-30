@@ -41,7 +41,7 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
     .replace(/\b(rock)\b/g, 'rook')
 
   // Remove noise words
-  text = text.replace(/\bto\b/g, ' ')
+  text = text.replace(/\b(to|on|move)\b/g, ' ')
 
   // NATO phonetic alphabet → file letters
   text = text
@@ -58,8 +58,13 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
   text = text
     .replace(/\b(ay|aye)\b/g, 'a')
     .replace(/\b(bee|be)\b/g, 'b')
+    .replace(/\b(pee|pe)\b/g, 'b')      // b/p voiced-unvoiced bilabial confusion
     .replace(/\b(sea|see|si)\b/g, 'c')
+    .replace(/\b(zee|ze|zed)\b/g, 'c')  // zee sounds like sea = c
     .replace(/\bdee\b/g, 'd')
+    .replace(/\b(tee|te)\b/g, 'd')      // d/t voiced-unvoiced alveolar confusion
+    .replace(/\b(ef|eff)\b/g, 'f')      // letter F's spoken name
+    .replace(/\b(gee|jay|j)\b/g, 'g')  // letter G's name; j/jay sounds like gee
     .replace(/\b(aitch|haitch)\b/g, 'h')
 
   // Rank words → digits
@@ -78,6 +83,15 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
 
   // Normalize whitespace
   text = text.replace(/\s+/g, ' ').trim()
+
+  // Reject if any unrecognised word remains — prevents "cream d6" silently becoming a pawn move
+  const remainder = text
+    .replace(/\b(knight|bishop|rook|queen|king|pawn|takes|captures|eats|x)\b/g, '')
+    .replace(/\b[a-h][1-8]\b/g, '')
+    .replace(/\b[a-h]\b/g, '')
+    .replace(/\b[1-8]\b/g, '')
+    .replace(/\s+/g, '')
+  if (remainder.length > 0) return null
 
   // Extract promotion piece at end (must come before piece extraction)
   let promotion: string | undefined
