@@ -62,7 +62,7 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
   // Phonetic letter aliases (STT often returns letter names as words)
   text = text
     .replace(/\b(ay|aye)\b/g, 'a')
-    .replace(/\b(bee|be)\b/g, 'b')
+    .replace(/\b(bee|be|vee|v)\b/g, 'b')
     .replace(/\b(pee|pe)\b/g, 'b')      // b/p voiced-unvoiced bilabial confusion
     .replace(/\b(sea|see|si)\b/g, 'c')
     .replace(/\b(zee|ze|zed)\b/g, 'c')  // zee sounds like sea = c
@@ -85,6 +85,7 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
 
   // Specific whole-phrase misrecognitions that survive earlier substitutions
   text = text.replace(/\bdefault\b/g, 'd4')
+  text = text.replace(/\bbefore\b/g, 'b4')
 
   // Two-digit number where second digit is a valid rank → likely a misheard square
   // e.g. "84" → "a4" when STT hears "a" as "eight"
