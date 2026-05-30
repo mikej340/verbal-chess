@@ -62,7 +62,7 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
   // Phonetic letter aliases (STT often returns letter names as words)
   text = text
     .replace(/\b(ay|aye)\b/g, 'a')
-    .replace(/\b(bee|be)\b/g, 'b')
+    .replace(/\b(bee|be|vee|v)\b/g, 'b')
     .replace(/\b(pee|pe)\b/g, 'b')      // b/p voiced-unvoiced bilabial confusion
     .replace(/\b(sea|see|si)\b/g, 'c')
     .replace(/\b(zee|ze|zed)\b/g, 'c')  // zee sounds like sea = c
