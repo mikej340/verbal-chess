@@ -37,7 +37,8 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
 
   // Normalize piece misrecognitions
   text = text
-    .replace(/\b(night|naught|nought|horse|nite|neigh|mike)\b/g, 'knight')
+    .replace(/\b(night|naught|nought|horse|nite|neigh|mike|might)\b/g, 'knight')
+    .replace(/\b(cream|clean)\b/g, 'queen')
     .replace(/\b(rock)\b/g, 'rook')
 
   // Remove noise words
