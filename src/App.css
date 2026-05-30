@@ -1,0 +1,242 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #1a1a2e;
+  --surface: #16213e;
+  --surface2: #0f3460;
+  --accent: #e94560;
+  --accent-glow: rgba(233, 69, 96, 0.5);
+  --text: #eaeaea;
+  --text-muted: #8892a4;
+  --success: #4caf50;
+  --warn: #ff9800;
+  --btn-bg: #0f3460;
+  --btn-hover: #1a4a80;
+  --radius: 10px;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.app {
+  width: 100%;
+  max-width: 640px;
+  padding: 1rem 0.75rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Title */
+.title {
+  margin: 0;
+  font-size: clamp(1.25rem, 5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+/* Board */
+.board-container {
+  width: min(100%, 560px);
+  touch-action: none;
+}
+
+/* Controls row */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 1rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--btn-bg);
+  color: var(--text);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.btn:hover {
+  background: var(--btn-hover);
+}
+
+.btn:active {
+  transform: scale(0.95);
+}
+
+/* Mic button */
+.btn-mic {
+  min-width: 64px;
+  min-height: 64px;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  background: var(--surface2);
+}
+
+.btn-mic.active {
+  background: var(--accent);
+  animation: pulse-mic 1.5s infinite;
+}
+
+@keyframes pulse-mic {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%       { box-shadow: 0 0 0 10px transparent; }
+}
+
+.active-secondary {
+  background: var(--surface2);
+  outline: 2px solid var(--accent);
+}
+
+.no-speech-warning {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 0.5rem;
+}
+
+/* FEN row */
+.fen-row {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.fen-input {
+  flex: 1;
+  min-height: 48px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--surface2);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-family: monospace;
+  outline: none;
+  /* Prevent iOS zoom on focus */
+  font-size: max(16px, 0.8rem);
+}
+
+.fen-input:focus {
+  border-color: var(--accent);
+}
+
+.fen-input-error {
+  border-color: var(--accent);
+}
+
+.btn-load {
+  font-size: 0.9rem;
+  padding: 0 1.25rem;
+  white-space: nowrap;
+}
+
+.fen-error-msg {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+/* Status bar */
+.status-bar {
+  width: 100%;
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.status-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.status-label {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  min-width: 5rem;
+  flex-shrink: 0;
+}
+
+.status-value {
+  color: var(--text);
+}
+
+.status-value.mono {
+  font-family: monospace;
+}
+
+.status-bad .status-value {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.status-warn .status-value {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+/* Desktop layout: side-by-side in landscape when wide enough */
+@media (min-width: 680px) {
+  .app {
+    padding: 1.5rem 1rem 2rem;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .app {
+    padding: 0.5rem 0.75rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .title {
+    font-size: 1rem;
+  }
+
+  .board-container {
+    width: min(55vh, 400px);
+  }
+
+  .status-bar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+  }
+}
