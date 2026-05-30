@@ -15,6 +15,9 @@ const PROMO_MAP: Record<string, string> = {
   queen: 'q', rook: 'r', bishop: 'b', knight: 'n',
 }
 
+// Digit in file position → file letter (e.g. "84" heard when user said "a4")
+const DIGIT_TO_FILE: Record<string, string> = { '8': 'a' }
+
 export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
   let text = transcript.toLowerCase().trim()
 
@@ -78,6 +81,13 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
     .replace(/\bsix\b/g, '6')
     .replace(/\bseven\b/g, '7')
     .replace(/\b(eight|ate)\b/g, '8')
+
+  // Two-digit number where second digit is a valid rank → likely a misheard square
+  // e.g. "84" → "a4" when STT hears "a" as "eight"
+  text = text.replace(/\b([0-9])([1-8])\b/g, (_, d, r) => {
+    const file = DIGIT_TO_FILE[d]
+    return file != null ? file + r : d + r
+  })
 
   // Collapse "f 3" → "f3"
   text = text.replace(/\b([a-h])\s+([1-8])\b/g, '$1$2')
