@@ -85,6 +85,7 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
 
   // Specific whole-phrase misrecognitions that survive earlier substitutions
   text = text.replace(/\bdefault\b/g, 'd4')
+  text = text.replace(/\bbefore\b/g, 'b4')
 
   // Two-digit number where second digit is a valid rank → likely a misheard square
   // e.g. "84" → "a4" when STT hears "a" as "eight"
