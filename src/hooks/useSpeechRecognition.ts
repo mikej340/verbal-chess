@@ -37,7 +37,7 @@ declare global {
 const CHESS_JSGF = `#JSGF V1.0;
 grammar chess;
 public <move> = <piece>? <capture>? <square> | <castling> | <piece>? <square> <capture> <square>;
-<piece> = knight | night | mike | bishop | rook | rock | queen | king | pawn;
+<piece> = knight | night | mike | might | bishop | rook | rock | queen | cream | clean | king | pawn;
 <capture> = takes | captures | eats | x;
 <square> = <file> <rank>;
 <file> = a | b | c | d | e | f | g | h | alpha | alfa | able | bravo | beta | charlie | delta | echo | foxtrot | fox | golf | hotel | ay | aye | bee | sea | see | dee | aitch | haitch | ef | eff | gee | pee | pe | tee | te | zee | ze | zed | jay | j;
