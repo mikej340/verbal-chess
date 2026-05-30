@@ -18,25 +18,26 @@ const PROMO_MAP: Record<string, string> = {
 export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
   let text = transcript.toLowerCase().trim()
 
-  // Strip trailing annotations
+  // Strip trailing annotations and leading article
   text = text.replace(/\b(check|checkmate|mate|plus|please)\b/g, '')
+  text = text.replace(/\bthe\b/g, ' ')
 
   // Detect queenside castling first (before kingside to avoid partial match on "o-o")
-  if (/\b(castle\s*queen\s*side|long\s*castle|queen\s*side\s*castle|o\s*-?\s*o\s*-?\s*o)\b/.test(text)) {
+  if (/\b(castle\s*queen\s*side|long\s*castle|queen\s*side\s*castle|o\s*-?\s*o\s*-?\s*o|oh\s*oh\s*oh|zero\s*zero\s*zero)\b/.test(text)) {
     return { isCastleQueenside: true }
   }
   // Detect kingside castling
-  if (/\b(castle\s*king\s*side|short\s*castle|king\s*side\s*castle|o\s*-?\s*o)\b/.test(text)) {
+  if (/\b(castle\s*king\s*side|short\s*castle|king\s*side\s*castle|o\s*-?\s*o|oh\s*oh|zero\s*zero)\b/.test(text)) {
     return { isCastleKingside: true }
   }
-  // Plain "castle" — try kingside first (more common), caller will fall back to queenside
-  if (/\bcastle\b/.test(text)) {
+  // Plain "castle"/"castles" — try kingside first (more common)
+  if (/\bcastles?\b/.test(text)) {
     return { isCastleKingside: true }
   }
 
   // Normalize piece misrecognitions
   text = text
-    .replace(/\b(night|naught|nought|horse|nite|neigh)\b/g, 'knight')
+    .replace(/\b(night|naught|nought|horse|nite|neigh|mike)\b/g, 'knight')
     .replace(/\b(rock)\b/g, 'rook')
 
   // Remove noise words
@@ -53,16 +54,24 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
     .replace(/\bgolf\b/g, 'g')
     .replace(/\bhotel\b/g, 'h')
 
+  // Phonetic letter aliases (STT often returns letter names as words)
+  text = text
+    .replace(/\b(ay|aye)\b/g, 'a')
+    .replace(/\b(bee|be)\b/g, 'b')
+    .replace(/\b(sea|see|si)\b/g, 'c')
+    .replace(/\bdee\b/g, 'd')
+    .replace(/\b(aitch|haitch)\b/g, 'h')
+
   // Rank words → digits
   text = text
-    .replace(/\bone\b/g, '1')
-    .replace(/\btwo\b/g, '2')
-    .replace(/\bthree\b/g, '3')
-    .replace(/\bfour\b/g, '4')
+    .replace(/\b(one|won)\b/g, '1')
+    .replace(/\b(two|too)\b/g, '2')
+    .replace(/\b(three|tree|free)\b/g, '3')
+    .replace(/\b(four|for|fore)\b/g, '4')
     .replace(/\bfive\b/g, '5')
     .replace(/\bsix\b/g, '6')
     .replace(/\bseven\b/g, '7')
-    .replace(/\beight\b/g, '8')
+    .replace(/\b(eight|ate)\b/g, '8')
 
   // Collapse "f 3" → "f3"
   text = text.replace(/\b([a-h])\s+([1-8])\b/g, '$1$2')
@@ -87,7 +96,7 @@ export function parseMoveFromSpeech(transcript: string): ParsedMove | null {
   }
 
   // Detect capture keywords
-  text = text.replace(/\b(takes|captures|x)\b/g, ' ').replace(/\s+/g, ' ').trim()
+  text = text.replace(/\b(takes|captures|eats|x)\b/g, ' ').replace(/\s+/g, ' ').trim()
 
   // Find all squares (file+rank combos)
   const squares = [...text.matchAll(/\b([a-h][1-8])\b/g)].map(m => m[1])
