@@ -108,7 +108,13 @@ export function useChessGame(): UseChessGameReturn {
 
     // Regular move: find the unique legal candidate, then apply it
     return tryWithTurns(() => {
-      const candidates = findCandidates(chess, parsed)
+      let candidates = findCandidates(chess, parsed)
+      if (candidates.length === 0) return null
+      // chess.js emits 4 moves for promotions (one per piece) — narrow to the desired/default
+      if (candidates.length > 1 && candidates.every(m => m.isPromotion())) {
+        const want = parsed.promotion ?? 'q'
+        candidates = candidates.filter(m => m.promotion === want)
+      }
       if (candidates.length !== 1) return null
       const c = candidates[0]
       const mv: { from: string; to: string; promotion?: string } = { from: c.from, to: c.to }
