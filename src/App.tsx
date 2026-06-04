@@ -4,6 +4,7 @@ import { useChessGame } from './hooks/useChessGame'
 import { useSpeechRecognition } from './hooks/useSpeechRecognition'
 import { StatusBar } from './components/StatusBar'
 import { parseMoveFromSpeech } from './utils/parseMoveFromSpeech'
+import { matchTranscriptToMove } from './utils/matchTranscriptToMove'
 import type { ChessboardOptions } from 'react-chessboard'
 
 export default function App() {
@@ -15,11 +16,13 @@ export default function App() {
     isStalemate,
     isDraw,
     lastMove,
+    makeMove,
     makeParsedMove,
     makeMoveFromSquares,
     undo,
     reset,
     loadFen: loadFenFromGame,
+    getChess,
   } = useChessGame()
 
   const [orientation, setOrientation] = useState<'white' | 'black'>('white')
@@ -56,13 +59,28 @@ export default function App() {
           return
         }
       }
+      // Levenshtein fallback: compare normalised transcript against spoken forms of legal moves
+      const legalMoves = getChess().moves()
+      for (const transcript of transcripts) {
+        const result = matchTranscriptToMove(transcript, legalMoves)
+        if (result) {
+          const success = makeMove(result.move)
+          if (success) {
+            setLastHeard(transcript)
+            setParseError(null)
+            setSelectedSquare(null)
+            return
+          }
+        }
+      }
+
       // None succeeded — report error using top-ranked alternative
       const top = transcripts[0] ?? ''
       setLastHeard(top)
       const parsed = parseMoveFromSpeech(top)
       showError(parsed ? `Illegal move: "${top}"` : `Didn't understand: "${top}"`)
     },
-    [makeParsedMove, showError]
+    [makeParsedMove, makeMove, getChess, showError]
   )
 
   const { isListening, isSupported, toggleListening } = useSpeechRecognition({ onTranscripts })
